@@ -4,21 +4,22 @@
 #include <vector>
 
 struct Point {
-  int x, y;
+  long long x, y;
   bool operator<(const Point &p) const {
     return x < p.x || (x == p.x && y < p.y);
   }
 };
 
-double ccw(const Point &a, const Point &b, const Point &c) {
-  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+long double ccw(const Point &a, const Point &b, const Point &c) {
+  return (long double)(b.x - a.x) * (c.y - a.y) -
+         (long double)(b.y - a.y) * (c.x - a.x);
 }
 
 struct Compare {
   Point p0;
   Compare(const Point &p0) : p0(p0) {}
   bool operator()(const Point &a, const Point &b) const {
-    double t = ccw(p0, a, b);
+    long double t = ccw(p0, a, b);
     return t > 0 || (t == 0 && a.y < b.y);
   }
 };
@@ -40,15 +41,17 @@ int main() {
 
   std::vector<Point> points(point_set.begin(), point_set.end());
 
-  int index = 0;
-  for (int i = 1; i < points.size(); ++i) {
+  unsigned long index = 0;
+  for (unsigned long i = 1; i < points.size(); i++) {
     if (points[i].y < points[index].y ||
         (points[i].y == points[index].y && points[i].x < points[index].x)) {
       index = i;
     }
   }
 
-  std::swap(points[0], points[index]);
+  if (index != 0) {
+    std::swap(points[0], points[index]);
+  }
 
   std::sort(points.begin() + 1, points.end(), Compare(points[0]));
 
@@ -64,4 +67,6 @@ int main() {
   for (auto &p : hull) {
     std::cout << p.x << ' ' << p.y << std::endl;
   }
+
+  return 0;
 }
