@@ -27,6 +27,10 @@ int main() {
   int n;
   std::cin >> n;
 
+  if (n == 0) {
+    return 0;
+  }
+
   std::set<Point> point_set;
   for (int i = 0; i < n; ++i) {
     Point p;
