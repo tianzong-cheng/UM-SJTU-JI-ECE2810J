@@ -112,19 +112,16 @@ void quick_sort_extra(std::vector<T> &vector, Compare comp = std::less<T>()) {
   }
   left.shrink_to_fit();
   right.shrink_to_fit();
+
+  vector.clear();
+  vector.shrink_to_fit();
+
   quick_sort_extra(left, comp);
   quick_sort_extra(right, comp);
-  unsigned long k = 0;
-  for (unsigned long i = 0; i < left.size(); i++) {
-    vector[k] = left[i];
-    k++;
-  }
-  vector[k] = pivot;
-  k++;
-  for (unsigned long i = 0; i < right.size(); i++) {
-    vector[k] = right[i];
-    k++;
-  }
+
+  vector.insert(vector.end(), left.begin(), left.end());
+  vector.push_back(pivot);
+  vector.insert(vector.end(), right.begin(), right.end());
   vector.shrink_to_fit();
 }
 
