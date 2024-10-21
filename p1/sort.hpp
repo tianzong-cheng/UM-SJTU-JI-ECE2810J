@@ -38,16 +38,28 @@ void selection_sort(std::vector<T> &vector, Compare comp = std::less<T>()) {
   if (vector.size() <= 1) {
     return;
   }
-  for (unsigned long i = 0; i < vector.size() - 1; i++) {
-    unsigned long min = i;
-    for (unsigned long j = i + 1; j < vector.size(); j++) {
-      if (comp(vector[j], vector[min])) {
-        min = j;
+
+  unsigned long left = 0;
+  unsigned long right = vector.size() - 1;
+
+  while (left < right) {
+    unsigned long min = left;
+    unsigned long max = left;
+    for (unsigned long i = left + 1; i <= right; i++) {
+      if (comp(vector[i], vector[min])) {
+        min = i;
+      }
+      if (comp(vector[max], vector[i])) {
+        max = i;
       }
     }
-    if (min != i) {
-      std::swap(vector[i], vector[min]);
+    std::swap(vector[left], vector[min]);
+    if (max == left) {
+      max = min;
     }
+    std::swap(vector[right], vector[max]);
+    left++;
+    right--;
   }
 }
 
