@@ -173,7 +173,14 @@ protected: // DO NOT USE private HERE!
    * @param bucketSize lower bound of the new number of buckets
    */
   size_t findMinimumBucketSize(size_t bucketSize) const {
-    // TODO: implement this function
+    for (size_t size : HashPrime::g_a_sizes) {
+      if (size >= bucketSize &&
+          static_cast<double>(size) >
+              static_cast<double>(tableSize) / maxLoadFactor) {
+        return size;
+      }
+    }
+    throw std::range_error("no such bucket size can be found!");
   }
 
   // TODO: define your helper functions here if necessary
@@ -194,11 +201,40 @@ public:
   }
 
   HashTable(const HashTable &that) {
-    // TODO: implement this function
+    this->tableSize = that.tableSize;
+    this->maxLoadFactor = that.maxLoadFactor;
+    this->hash = that.hash;
+    this->keyEqual = that.keyEqual;
+
+    this->buckets.resize(that.buckets.size());
+    for (size_t i = 0; i < that.buckets.size(); ++i) {
+      for (auto &node : that.buckets[i]) {
+        this->buckets[i].push_front(node);
+      }
+    }
+
+    this->firstBucketIt =
+        this->buckets.begin() + (that.firstBucketIt - that.buckets.begin());
   }
 
   HashTable &operator=(const HashTable &that) {
-    // TODO: implement this function
+    if (this != &that) {
+      this->tableSize = that.tableSize;
+      this->maxLoadFactor = that.maxLoadFactor;
+      this->hash = that.hash;
+      this->keyEqual = that.keyEqual;
+
+      this->buckets.resize(that.buckets.size());
+      for (size_t i = 0; i < that.buckets.size(); ++i) {
+        for (auto &node : that.buckets[i]) {
+          this->buckets[i].push_front(node);
+        }
+      }
+
+      this->firstBucketIt =
+          this->buckets.begin() + (that.firstBucketIt - that.buckets.begin());
+    }
+    return *this;
   };
 
   ~HashTable() = default;
@@ -231,7 +267,25 @@ public:
    * @return a pair (success, iterator of the value)
    */
   Iterator find(const Key &key) {
-    // TODO: implement this function
+    Iterator it(this);
+    auto current_bucket = buckets.begin() + static_cast<long>(hashKey(key));
+    it.bucketIt = current_bucket;
+    it.listItBefore = it.bucketIt->before_begin();
+    if (it.bucketIt->empty()) {
+      it.endFlag = true;
+      return it;
+    }
+    while (it.bucketIt == current_bucket) {
+      if (keyEqual(it->first, key)) {
+        it.endFlag = false;
+        return it;
+      }
+      it++;
+    }
+    it.bucketIt = current_bucket;
+    it.listItBefore = it.bucketIt->before_begin();
+    it.endFlag = true;
+    return it;
   }
 
   /**
@@ -248,7 +302,23 @@ public:
    * exists)
    */
   bool insert(const Iterator &it, const Key &key, const Value &value) {
-    // TODO: implement this function
+    // key already exists
+    if (!it.endFlag) {
+      auto listIt = it.listItBefore;
+      listIt++;
+      listIt->second = value;
+      return false;
+    }
+    it.bucketIt->emplace_after(it.listItBefore, HashNode(key, value));
+    if (firstBucketIt - this->begin().bucketIt >
+        it.bucketIt - this->begin().bucketIt) {
+      firstBucketIt = it.bucketIt;
+    }
+    tableSize++;
+    if (loadFactor() > maxLoadFactor) {
+      rehash(bucketSize() + 1);
+    }
+    return true;
   }
 
   /**
@@ -263,7 +333,8 @@ public:
    * exists)
    */
   bool insert(const Key &key, const Value &value) {
-    // TODO: implement this function
+    auto it = find(key);
+    return insert(it, key, value);
   }
 
   /**
@@ -275,7 +346,12 @@ public:
    * @return whether the key exists
    */
   bool erase(const Key &key) {
-    // TODO: implement this function
+    auto it = find(key);
+    if (it.endFlag) {
+      return false;
+    }
+    erase(it);
+    return true;
   }
 
   /**
@@ -286,7 +362,19 @@ public:
    * @return the iterator after the input iterator before the erase
    */
   Iterator erase(const Iterator &it) {
-    // TODO: implement this function
+    if (it.endFlag) {
+      return it;
+    }
+    auto nextIt = it;
+    nextIt++;
+    it.bucketIt->erase_after(it.listItBefore);
+    tableSize--;
+    if (it.bucketIt->empty() && it.bucketIt == firstBucketIt) {
+      while (firstBucketIt != buckets.end() && firstBucketIt->empty()) {
+        firstBucketIt++;
+      }
+    }
+    return nextIt;
   }
 
   /**
@@ -298,7 +386,12 @@ public:
    * @return reference of value
    */
   Value &operator[](const Key &key) {
-    // TODO: implement this function
+    auto it = find(key);
+    if (it.endFlag) {
+      insert(it, key, Value());
+    }
+    it = find(key);
+    return it->second;
   }
 
   /**
@@ -312,9 +405,18 @@ public:
    */
   void rehash(size_t bucketSize) {
     bucketSize = findMinimumBucketSize(bucketSize);
-    if (bucketSize == buckets.size())
+    if (bucketSize == buckets.size()) {
       return;
-    // TODO: implement this function
+    }
+    HashTableData old(bucketSize);
+    std::swap(buckets, old);
+    tableSize = 0;
+    firstBucketIt = buckets.end();
+    for (auto &bucket : old) {
+      for (auto &node : bucket) {
+        insert(node.first, node.second);
+      }
+    }
   }
 
   /**
