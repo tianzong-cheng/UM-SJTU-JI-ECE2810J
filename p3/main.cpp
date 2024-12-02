@@ -1,3 +1,9 @@
 #include "sokoban.hpp"
 
-int main() { return 0; }
+int main() {
+  std::vector<std::string> grid;
+  read_map(grid);
+  std::string ans = solve(grid);
+  std::cout << ans << std::endl;
+  return 0;
+}
