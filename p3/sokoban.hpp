@@ -4,6 +4,7 @@
 #include <queue>
 #include <string>
 #include <unordered_set>
+#include <thread>
 #include <vector>
 
 typedef uint16_t Coord;
@@ -158,13 +159,14 @@ std::string solve(std::vector<std::string> &grid) {
       if (grid[i][j] == 'S') {
         start.player = {i, j};
       } else if (grid[i][j] == 'B' || grid[i][j] == 'R') {
-        start.boxes.push_back({i, j});
+        start.boxes.emplace_back(i, j);
         if (CheckBoxCorner(grid, {i, j})) {
           return "No solution!";
         }
       }
     }
   }
+  SortBoxes(start.boxes);
   std::queue<State> q;
   q.push(start);
   visited.insert({start, ""});
@@ -226,7 +228,7 @@ std::string solve(std::vector<std::string> &grid) {
 // your answer) Do not remove the first element, it should be left blank. NOTE:
 // Ensure the order is correct! Your answer should look like "UUDDLLRR..."
 const std::vector<std::string> answers = {
-        "__leave_this_blank__", "ans for big 1", "ans for big 2", "ans for big 3",
+        "__leave_this_blank__", "ans for big 1", "UDDDRUULLLLUURR", "ans for big 3",
         "ans for big 4", "ans for big 5", "ans for big 6", "ans for big 7",
         "ans for big 8", "ans for big 9", "ans for big 10"};
 
@@ -236,4 +238,73 @@ std::string print_answer(int index) {
     return "invalid";
   }
   return answers[(size_t) index];
+}
+
+std::vector<std::string> GetTerrain(std::vector<std::string> &grid) {
+  std::vector<std::string> terrain;
+  for (size_t i = 0; i < grid.size(); i++) {
+    std::string row;
+    for (size_t j = 0; j < grid[i].size(); j++) {
+      if (grid[i][j] == '#') {
+        row.push_back('#');
+      } else if (grid[i][j] == 'T' || grid[i][j] == 'R') {
+        row.push_back('T');
+      } else {
+        row.push_back(' ');
+      }
+    }
+    terrain.push_back(row);
+  }
+  return terrain;
+}
+
+void Play(std::vector<std::string> &grid, std::string &answer) {
+  auto terrain = GetTerrain(grid);
+  State state;
+  for (size_t i = 0; i < grid.size(); i++) {
+    for (size_t j = 0; j < grid[i].size(); j++) {
+      if (grid[i][j] == 'S') {
+        state.player = {i, j};
+      } else if (grid[i][j] == 'B' || grid[i][j] == 'R') {
+        state.boxes.emplace_back(i, j);
+      }
+    }
+  }
+  SortBoxes(state.boxes);
+
+  for (size_t i = 0; i < answer.size(); i++) {
+    auto player = state.player;
+    auto next_player = player;
+    switch (answer[i]) {
+      case 'U':
+        next_player.first--;
+        break;
+      case 'D':
+        next_player.first++;
+        break;
+      case 'L':
+        next_player.second--;
+        break;
+      case 'R':
+        next_player.second++;
+        break;
+      default:
+        break;
+    }
+    for (auto &box: state.boxes) {
+      if (PointCompare(box, next_player)) {
+        break;
+      }
+      if (box == next_player) {
+        box.first += next_player.first - player.first;
+        box.second += next_player.second - player.second;
+        break;
+      }
+    }
+    state.player = next_player;
+    std::cout << "\033[H\033[J";
+    std::cout << "Move: " << i << std::endl;
+    PrintState(terrain, state);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
 }
