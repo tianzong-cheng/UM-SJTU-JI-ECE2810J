@@ -200,17 +200,33 @@ void read_map(std::vector<std::string> &grid) {
 std::string solve(std::vector<std::string> &grid) {
   std::unordered_map<State, Route, State::Hash> visited;
   State start;
+  int target_count = 0;
+  int box_count = 0;
+  bool start_found = false;
   for (size_t i = 0; i < grid.size(); i++) {
     for (size_t j = 0; j < grid[i].size(); j++) {
       if (grid[i][j] == 'S') {
+        if (start_found) {
+          return "No solution!";
+        }
         start.player = {i, j};
+        start_found = true;
       } else if (grid[i][j] == 'B' || grid[i][j] == 'R') {
+        if (grid[i][j] == 'R') {
+          target_count++;
+        }
         start.boxes.emplace_back(i, j);
         if (CheckBoxCorner(grid, {i, j})) {
           return "No solution!";
         }
+        box_count++;
+      } else if (grid[i][j] == 'T') {
+        target_count++;
       }
     }
+  }
+  if (target_count < box_count) {
+    return "No solution!";
   }
   SortBoxes(start.boxes);
   std::queue<State> q;
