@@ -9,6 +9,7 @@
 
 typedef uint16_t Coord;
 typedef std::pair<Coord, Coord> Point;
+typedef std::pair<uint8_t, std::vector<uint8_t>> Route;
 
 struct State {
     Point player;
@@ -133,6 +134,47 @@ void PrintState(const std::vector<std::string> &terrain, const State &state) {
   std::cout << std::endl;
 }
 
+std::string GetRouteString(const Route &route) {
+  std::string route_string;
+  for (auto it = route.second.begin(); it != route.second.end(); it++) {
+    for (int i = 0; i < (it + 1 == route.second.end() ? route.first : 4); i++) {
+      int move = (*it & (3 << (i * 2))) >> (i * 2);
+      route_string.push_back("URDL"[move]);
+    }
+  }
+  return route_string;
+}
+
+Route AppendRoute(const Route &route, char move_char) {
+  uint8_t move;
+  switch (move_char) {
+    case 'U':
+      move = 0;
+      break;
+    case 'R':
+      move = 1;
+      break;
+    case 'D':
+      move = 2;
+      break;
+    case 'L':
+      move = 3;
+      break;
+    default:
+      move = 0;
+      break;
+  }
+  Route new_route = route;
+  if (route.first == 4) {
+    new_route.first = 1;
+    new_route.second.push_back(move);
+  } else {
+    new_route.second.back() |= move << ((new_route.first) * 2);
+    new_route.first++;
+  }
+  return new_route;
+}
+
 /**
  * @brief  Read your map from stdin
  * @note   Input format: See project description
@@ -156,7 +198,7 @@ void read_map(std::vector<std::string> &grid) {
  * @retval
  */
 std::string solve(std::vector<std::string> &grid) {
-  std::unordered_map<State, std::string, State::Hash> visited;
+  std::unordered_map<State, Route, State::Hash> visited;
   State start;
   for (size_t i = 0; i < grid.size(); i++) {
     for (size_t j = 0; j < grid[i].size(); j++) {
@@ -173,7 +215,8 @@ std::string solve(std::vector<std::string> &grid) {
   SortBoxes(start.boxes);
   std::queue<State> q;
   q.push(start);
-  visited.insert({start, ""});
+  Route route = {4, {}};
+  visited.insert({start, route});
 
   while (!q.empty()) {
     auto head = q.front();
@@ -218,10 +261,10 @@ std::string solve(std::vector<std::string> &grid) {
         SortBoxes(next_state.boxes);
       }
       if (CheckTarget(grid, next_state)) {
-        return visited[head] + "URDL"[i];
+        return GetRouteString(visited[head]) + "URDL"[i];
       }
       if (visited.find(next_state) == visited.end()) {
-        visited.insert({next_state, visited[head] + "URDL"[i]});
+        visited.insert({next_state, AppendRoute(visited[head], "URDL"[i])});
         q.push(next_state);
       }
     }
