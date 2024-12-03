@@ -59,7 +59,7 @@ bool PointCompare(const Point &a, const Point &b) {
 void SortBoxes(std::vector<Point> &boxes) {
   for (size_t i = 1; i < boxes.size(); i++) {
     size_t j = i;
-    while (j > 0 && PointCompare(boxes[j], boxes[j - 1])) {
+    while (j > 0 && PointCompare(boxes[j - 1], boxes[j])) {
       std::swap(boxes[j], boxes[j - 1]);
       j--;
     }
@@ -117,13 +117,17 @@ bool CheckBoxCorner(const std::vector<std::string> &grid, const Point &box) {
   return false;
 }
 
-void PrintState(const std::vector<std::string> &grid, const State &state) {
-  auto grid_copy = grid;
-  grid_copy[state.player.first][state.player.second] = 'P';
+void PrintState(const std::vector<std::string> &terrain, const State &state) {
+  auto terrain_copy = terrain;
+  terrain_copy[state.player.first][state.player.second] = 'P';
   for (const auto &box: state.boxes) {
-    grid_copy[box.first][box.second] = 'B';
+    if (terrain_copy[box.first][box.second] == 'T') {
+      terrain_copy[box.first][box.second] = 'R';
+    } else {
+      terrain_copy[box.first][box.second] = 'B';
+    }
   }
-  for (const auto &row: grid_copy) {
+  for (const auto &row: terrain_copy) {
     std::cout << row << std::endl;
   }
   std::cout << std::endl;
@@ -210,7 +214,9 @@ std::string solve(std::vector<std::string> &grid) {
         continue;
       }
 
-      SortBoxes(next_state.boxes);
+      if (moved) {
+        SortBoxes(next_state.boxes);
+      }
       if (CheckTarget(grid, next_state)) {
         return visited[head] + "URDL"[i];
       }
@@ -228,9 +234,16 @@ std::string solve(std::vector<std::string> &grid) {
 // your answer) Do not remove the first element, it should be left blank. NOTE:
 // Ensure the order is correct! Your answer should look like "UUDDLLRR..."
 const std::vector<std::string> answers = {
-        "__leave_this_blank__", "ans for big 1", "UDDDRUULLLLUURR", "ans for big 3",
-        "ans for big 4", "ans for big 5", "ans for big 6", "ans for big 7",
-        "ans for big 8", "ans for big 9", "ans for big 10"};
+        "__leave_this_blank__", "ans for big 1",
+        "RUULDDLDDLLUULUUURRDLDDRRDDRRUULUULLULLDDRURRRULRDDDRDLDLLLUURRDRUUDDDLL",
+        "DRURRLLUUULUURDRRRDDRDRDDLLUURRUURRUULLDDDDLLDDRRURULDDLLULLLUUULUURDRRRRLDDRRDDDLLULLLUUULURRRRDDRRDDDLLDLURRRUUULLDDUUUULLLDDDDRRDRUUURRDDDLRUUUURRUULLDLLLLRRRRDDLLUDDDLDDRUUUURRDLULDDLDDRURRURULULLDDLDRUUURRUULLDDDDLLLUUULUURDRRURDDDDULDDLLUUULURRRURDRRDDDLLURRUULLDDLDURRDL",
+        "ans for big 4",
+        "RRUUUULURRRRRRRRRURDDDDRDLDLLURDRUUUURULLLDLUUULUURRDLLDDDLLLLLDDDRDRRDRRULLLLDLUUUULURRRRRRRRRURDDDDRDLDLLURDRUUUURULLLDLUUULULLULDRRRURRDLLDDDLLLLLDDDRDRRDLLRRDDLLLUUUUUULURRRRRRRRRURDDDDRDLDLLURDRUUUURULLLDLUUULULLDLURRRURRDLLDDDLLLLLDDDDDLLLUURRDRUUULURRRRRRRRRURDDDDRDLDLLURDRUUUURULLLDLUUULULLLLRRRRURRDLLLLLRUL",
+        "URRUULULLRRDRDDLUUDDLDLLURUURUURRDLDDRDDLLRURUULUURDDLLLDDRDRRULUURDULLLDDRDRUURULDDDRULLLLDRRURUURUULLLDDDUUURRRDDLUDDDLDLLURUURURRDLDDRDLLLURDRUUURULDDDRUU",
+        "ans for big 7",
+        "ULDDDRDLLLDLLURRRLLUURDUURURRDLDDLLUURURDLLDDRDLDLLULUURRLURRDLLLDDRDRRULLRRRURRDLLLDLLURURRDRRULDLLDLURUUURURRDLDDRDLLLUUURURDDDUULLDDDRRLLDLLURRUUULLDRDUURRRDDLLDDLLURURRRUULLLLDLDLDRUURURRDLDRLDDRUULUURRRDDLRDL",
+        "RDDLLLDDLLURDRRRDRUUULLLDLDRRLUURRRDDDLULLULLUUUUURRDDDDDLDRRRURDUUUULUURDDDDLDDLLULLUUUURURDDDDDLDRRRLLULLUURLUURRDDDDLDRRLUURRDD",
+        "DDRUUUULDDDRDLLLRURULLLULUURDDLDDRUUURR"};
 
 // Don't modify this.
 std::string print_answer(int index) {
@@ -272,6 +285,12 @@ void Play(std::vector<std::string> &grid, std::string &answer) {
   }
   SortBoxes(state.boxes);
 
+  std::cout << "\033[H\033[J";
+  std::cout << answer << std::endl;
+  std::cout << "Move: " << -1 << std::endl;
+  PrintState(terrain, state);
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
   for (size_t i = 0; i < answer.size(); i++) {
     auto player = state.player;
     auto next_player = player;
@@ -301,8 +320,11 @@ void Play(std::vector<std::string> &grid, std::string &answer) {
         break;
       }
     }
+    SortBoxes(state.boxes);
     state.player = next_player;
+
     std::cout << "\033[H\033[J";
+    std::cout << answer << std::endl;
     std::cout << "Move: " << i << std::endl;
     PrintState(terrain, state);
     std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -5,6 +5,5 @@ int main() {
   read_map(grid);
   std::string ans = solve(grid);
   Play(grid, ans);
-  std::cout << ans << std::endl;
   return 0;
 }
