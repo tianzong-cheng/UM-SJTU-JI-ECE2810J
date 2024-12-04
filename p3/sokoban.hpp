@@ -14,6 +14,7 @@ typedef std::pair<uint8_t, std::vector<uint8_t>> Route;
 struct State {
     Point player;
     std::vector<Point> boxes;
+    int cost;
 
     bool operator==(const State &other) const {
       if (player.first != other.player.first ||
@@ -26,6 +27,10 @@ struct State {
         }
       }
       return true;
+    }
+
+    bool operator<(const State &other) const {
+      return cost > other.cost;  // Min heap
     }
 
     struct Hash {
@@ -175,6 +180,33 @@ Route AppendRoute(const Route &route, char move_char) {
   return new_route;
 }
 
+std::vector<Point> GetTargets(const std::vector<std::string> &grid) {
+  std::vector<Point> targets;
+  for (size_t i = 0; i < grid.size(); i++) {
+    for (size_t j = 0; j < grid[i].size(); j++) {
+      if (grid[i][j] == 'T' || grid[i][j] == 'R') {
+        targets.emplace_back(i, j);
+      }
+    }
+  }
+  return targets;
+}
+
+int GetCost(const std::vector<Point> &targets, const State &state) {
+  int cost = 0;
+  for (const auto &box: state.boxes) {
+    int min_cost = INT32_MAX;
+    for (const auto &target: targets) {
+      int dist = abs(box.first - target.first) + abs(box.second - target.second);
+      if (dist < min_cost) {
+        min_cost = dist;
+      }
+    }
+    cost += min_cost;
+  }
+  return cost;
+}
+
 /**
  * @brief  Read your map from stdin
  * @note   Input format: See project description
@@ -198,6 +230,7 @@ void read_map(std::vector<std::string> &grid) {
  * @retval
  */
 std::string solve(std::vector<std::string> &grid) {
+  auto targets = GetTargets(grid);
   std::unordered_map<State, Route, State::Hash> visited;
   State start;
   int target_count = 0;
@@ -229,13 +262,14 @@ std::string solve(std::vector<std::string> &grid) {
     return "No solution!";
   }
   SortBoxes(start.boxes);
-  std::queue<State> q;
+  start.cost = GetCost(targets, start);
+  std::priority_queue<State> q;
   q.push(start);
   Route route = {4, {}};
   visited.insert({start, route});
 
   while (!q.empty()) {
-    auto head = q.front();
+    auto head = q.top();
     q.pop();
     auto player = head.player;
     for (size_t i = 0; i < kDelta.size(); i++) {
@@ -281,6 +315,8 @@ std::string solve(std::vector<std::string> &grid) {
       }
       if (visited.find(next_state) == visited.end()) {
         visited.insert({next_state, AppendRoute(visited[head], "URDL"[i])});
+        next_state.cost = GetCost(targets, next_state) +
+                          (static_cast<int>(visited[next_state].second.size()) - 1) * 4 + visited[next_state].first;
         q.push(next_state);
       }
     }
