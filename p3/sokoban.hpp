@@ -126,17 +126,114 @@ bool CheckBoxCorner(const std::vector<std::string> &grid, const Point &box) {
 
 bool CheckBoxWall(Coord target_x_min, Coord target_x_max, Coord target_y_min, Coord target_y_max, const Point &box,
                   const std::vector<std::string> &grid) {
-  if (box.first == 1 && target_x_min > 1) {
-    return true;
+  if (grid[box.first][box.second] == 'T' ||
+      grid[box.first][box.second] == 'R') {
+    return false;
   }
-  if (box.first == grid.size() - 2 && target_x_max < grid.size() - 2) {
-    return true;
+
+  if (box.first == 1) {
+    if (target_x_min > 1) {
+      return true;
+    }
+
+    bool target_found = false;
+    Coord i = box.second;
+    while (i > 1 && grid[box.first][i] != '#') {
+      i--;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    i = box.second;
+    while (i < grid[0].size() - 2 && grid[box.first][i] != '#') {
+      i++;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    if (!target_found) {
+      return true;
+    }
   }
-  if (box.second == 1 && target_y_min > 1) {
-    return true;
+  if (box.first == grid.size() - 2) {
+    if (target_x_max < grid.size() - 2) {
+      return true;
+    }
+
+    bool target_found = false;
+    Coord i = box.second;
+    while (i > 1 && grid[box.first][i] != '#') {
+      i--;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    i = box.second;
+    while (i < grid[0].size() - 2 && grid[box.first][i] != '#') {
+      i++;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    if (!target_found) {
+      return true;
+    }
   }
-  if (box.second == grid[0].size() - 2 && target_y_max < grid[0].size() - 2) {
-    return true;
+  if (box.second == 1) {
+    if (target_y_min > 1) {
+      return true;
+    }
+
+    bool target_found = false;
+    Coord i = box.first;
+    while (i > 1 && grid[i][box.second] != '#') {
+      i--;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    i = box.first;
+    while (i < grid.size() - 2 && grid[i][box.second] != '#') {
+      i++;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    if (!target_found) {
+      return true;
+    }
+  }
+  if (box.second == grid[0].size() - 2) {
+    if (target_y_max < grid[0].size() - 2) {
+      return true;
+    }
+
+    bool target_found = false;
+    Coord i = box.first;
+    while (i > 1 && grid[i][box.second] != '#') {
+      i--;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    i = box.first;
+    while (i < grid.size() - 2 && grid[i][box.second] != '#') {
+      i++;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
+        target_found = true;
+        break;
+      }
+    }
+    if (!target_found) {
+      return true;
+    }
   }
   return false;
 }
