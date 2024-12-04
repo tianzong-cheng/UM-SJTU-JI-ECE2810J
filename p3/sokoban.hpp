@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <thread>
 #include <vector>
+#include <fstream>
 
 typedef uint16_t Coord;
 typedef std::pair<Coord, Coord> Point;
@@ -214,6 +215,7 @@ bool CheckBoxWall(const Point &box, const std::vector<std::string> &grid) {
 }
 
 void PrintState(const std::vector<std::string> &terrain, const State &state) {
+  std::ofstream out_file("output.txt", std::ios::app);
   auto terrain_copy = terrain;
   terrain_copy[state.player.first][state.player.second] = 'P';
   for (const auto &box: state.boxes) {
@@ -225,8 +227,10 @@ void PrintState(const std::vector<std::string> &terrain, const State &state) {
   }
   for (const auto &row: terrain_copy) {
     std::cout << row << std::endl;
+    out_file << row << std::endl;
   }
   std::cout << std::endl;
+  out_file << std::endl;
 }
 
 std::string GetRouteString(const Route &route) {
@@ -459,7 +463,7 @@ std::vector<std::string> GetTerrain(std::vector<std::string> &grid) {
       } else if (grid[i][j] == 'T' || grid[i][j] == 'R') {
         row.push_back('T');
       } else {
-        row.push_back(' ');
+        row.push_back('.');
       }
     }
     terrain.push_back(row);
@@ -485,7 +489,7 @@ void Play(std::vector<std::string> &grid, std::string &answer) {
   std::cout << answer << std::endl;
   std::cout << "Move: " << -1 << std::endl;
   PrintState(terrain, state);
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   for (size_t i = 0; i < answer.size(); i++) {
     auto player = state.player;
@@ -523,6 +527,6 @@ void Play(std::vector<std::string> &grid, std::string &answer) {
     std::cout << answer << std::endl;
     std::cout << "Move: " << i << std::endl;
     PrintState(terrain, state);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 }
