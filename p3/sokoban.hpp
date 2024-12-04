@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <queue>
@@ -123,6 +124,23 @@ bool CheckBoxCorner(const std::vector<std::string> &grid, const Point &box) {
   return false;
 }
 
+bool CheckBoxWall(Coord target_x_min, Coord target_x_max, Coord target_y_min, Coord target_y_max, const Point &box,
+                  const std::vector<std::string> &grid) {
+  if (box.first == 1 && target_x_min > 1) {
+    return true;
+  }
+  if (box.first == grid.size() - 2 && target_x_max < grid.size() - 2) {
+    return true;
+  }
+  if (box.second == 1 && target_y_min > 1) {
+    return true;
+  }
+  if (box.second == grid[0].size() - 2 && target_y_max < grid[0].size() - 2) {
+    return true;
+  }
+  return false;
+}
+
 void PrintState(const std::vector<std::string> &terrain, const State &state) {
   auto terrain_copy = terrain;
   terrain_copy[state.player.first][state.player.second] = 'P';
@@ -236,6 +254,7 @@ std::string solve(std::vector<std::string> &grid) {
   int target_count = 0;
   int box_count = 0;
   bool start_found = false;
+  Coord target_x_min, target_x_max, target_y_min, target_y_max;
   for (size_t i = 0; i < grid.size(); i++) {
     for (size_t j = 0; j < grid[i].size(); j++) {
       if (grid[i][j] == 'S') {
@@ -245,16 +264,24 @@ std::string solve(std::vector<std::string> &grid) {
         start.player = {i, j};
         start_found = true;
       } else if (grid[i][j] == 'B' || grid[i][j] == 'R') {
-        if (grid[i][j] == 'R') {
-          target_count++;
-        }
         start.boxes.emplace_back(i, j);
         if (CheckBoxCorner(grid, {i, j})) {
           return "No solution!";
         }
         box_count++;
-      } else if (grid[i][j] == 'T') {
+      }
+
+      if (grid[i][j] == 'T' || grid[i][j] == 'R') {
         target_count++;
+        if (target_count == 1) {
+          target_x_min = target_x_max = static_cast<Coord>(i);
+          target_y_min = target_y_max = static_cast<Coord>(j);
+        } else {
+          target_x_min = std::min(target_x_min, static_cast<Coord>(i));
+          target_x_max = std::max(target_x_max, static_cast<Coord>(i));
+          target_y_min = std::min(target_y_min, static_cast<Coord>(j));
+          target_y_max = std::max(target_y_max, static_cast<Coord>(j));
+        }
       }
     }
   }
@@ -303,7 +330,9 @@ std::string solve(std::vector<std::string> &grid) {
           }
         }
       }
-      if (failure || (moved && CheckBoxCorner(grid, moved_box))) {
+      if (failure || (moved && (CheckBoxCorner(grid, moved_box) ||
+                                CheckBoxWall(target_x_min, target_x_max, target_y_min, target_y_max, moved_box,
+                                             grid)))) {
         continue;
       }
 
