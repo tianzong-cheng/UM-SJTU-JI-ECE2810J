@@ -124,114 +124,89 @@ bool CheckBoxCorner(const std::vector<std::string> &grid, const Point &box) {
   return false;
 }
 
-bool CheckBoxWall(Coord target_x_min, Coord target_x_max, Coord target_y_min, Coord target_y_max, const Point &box,
-                  const std::vector<std::string> &grid) {
+bool CheckBoxWall(const Point &box, const std::vector<std::string> &grid) {
   if (grid[box.first][box.second] == 'T' ||
       grid[box.first][box.second] == 'R') {
     return false;
   }
 
-  if (box.first == 1) {
-    if (target_x_min > 1) {
-      return true;
-    }
-
-    bool target_found = false;
+  if (grid[box.first - 1][box.second] == '#') {
+    bool possible = false;
     Coord i = box.second;
-    while (i > 1 && grid[box.first][i] != '#') {
+    while (i > 1 && grid[box.first][i] != '#' && !possible) {
       i--;
-      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
-        target_found = true;
-        break;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R' || grid[box.first - 1][i] != '#') {
+        possible = true;
       }
     }
     i = box.second;
-    while (i < grid[0].size() - 2 && grid[box.first][i] != '#') {
+    while (i < grid[0].size() - 2 && grid[box.first][i] != '#' && !possible) {
       i++;
-      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
-        target_found = true;
-        break;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R' || grid[box.first - 1][i] != '#') {
+        possible = true;
       }
     }
-    if (!target_found) {
+    if (!possible) {
       return true;
     }
   }
-  if (box.first == grid.size() - 2) {
-    if (target_x_max < grid.size() - 2) {
-      return true;
-    }
-
-    bool target_found = false;
+  if (grid[box.first + 1][box.second] == '#') {
+    bool possible = false;
     Coord i = box.second;
-    while (i > 1 && grid[box.first][i] != '#') {
+    while (i > 1 && grid[box.first][i] != '#' && !possible) {
       i--;
-      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
-        target_found = true;
-        break;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R' || grid[box.first + 1][i] != '#') {
+        possible = true;
       }
     }
     i = box.second;
-    while (i < grid[0].size() - 2 && grid[box.first][i] != '#') {
+    while (i < grid[0].size() - 2 && grid[box.first][i] != '#' && !possible) {
       i++;
-      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R') {
-        target_found = true;
-        break;
+      if (grid[box.first][i] == 'T' || grid[box.first][i] == 'R' || grid[box.first + 1][i] != '#') {
+        possible = true;
       }
     }
-    if (!target_found) {
+    if (!possible) {
       return true;
     }
   }
-  if (box.second == 1) {
-    if (target_y_min > 1) {
-      return true;
-    }
-
-    bool target_found = false;
+  if (grid[box.first][box.second - 1] == '#') {
+    bool possible = false;
     Coord i = box.first;
-    while (i > 1 && grid[i][box.second] != '#') {
+    while (i > 1 && grid[i][box.second] != '#' && !possible) {
       i--;
-      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
-        target_found = true;
-        break;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R' || grid[i][box.second - 1] != '#') {
+        possible = true;
       }
     }
     i = box.first;
-    while (i < grid.size() - 2 && grid[i][box.second] != '#') {
+    while (i < grid.size() - 2 && grid[i][box.second] != '#' && !possible) {
       i++;
-      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
-        target_found = true;
-        break;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R' || grid[i][box.second - 1] != '#') {
+        possible = true;
       }
     }
-    if (!target_found) {
+    if (!possible) {
       return true;
     }
   }
-  if (box.second == grid[0].size() - 2) {
-    if (target_y_max < grid[0].size() - 2) {
-      return true;
-    }
-
-    bool target_found = false;
+  if (grid[box.first][box.second + 1] == '#') {
+    bool possible = false;
     Coord i = box.first;
-    while (i > 1 && grid[i][box.second] != '#') {
+    while (i > 1 && grid[i][box.second] != '#' && !possible) {
       i--;
-      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
-        target_found = true;
-        break;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R' || grid[i][box.second + 1] != '#') {
+        possible = true;
       }
     }
     i = box.first;
-    while (i < grid.size() - 2 && grid[i][box.second] != '#') {
+    while (i < grid.size() - 2 && grid[i][box.second] != '#' && !possible) {
       i++;
-      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R') {
-        target_found = true;
-        break;
+      if (grid[i][box.second] == 'T' || grid[i][box.second] == 'R' || grid[i][box.second + 1] != '#') {
+        possible = true;
       }
     }
-    if (!target_found) {
+    if (!possible) {
       return true;
     }
   }
@@ -428,8 +403,7 @@ std::string solve(std::vector<std::string> &grid) {
         }
       }
       if (failure || (moved && (CheckBoxCorner(grid, moved_box) ||
-                                CheckBoxWall(target_x_min, target_x_max, target_y_min, target_y_max, moved_box,
-                                             grid)))) {
+                                CheckBoxWall(moved_box, grid)))) {
         continue;
       }
 
@@ -455,7 +429,8 @@ std::string solve(std::vector<std::string> &grid) {
 // your answer) Do not remove the first element, it should be left blank. NOTE:
 // Ensure the order is correct! Your answer should look like "UUDDLLRR..."
 const std::vector<std::string> answers = {
-        "__leave_this_blank__", "ans for big 1",
+        "__leave_this_blank__",
+        "UUUUULLLLULDRDLLLLLLLLRRUULLLLRRDDDLUDLLULDDDDLDRRRRRLDDDRRRDDDDRRRRDRRULLLRDDDLLUUURULLDLUUULURRR",
         "RUULDDLDDLLUULUUURRDLDDRRDDRRUULUULLULLDDRURRRULRDDDRDLDLLLUURRDRUUDDDLL",
         "DRURRLLUUULUURDRRRDDRDRDDLLUURRUURRUULLDDDDLLDDRRURULDDLLULLLUUULUURDRRRRLDDRRDDDLLULLLUUULURRRRDDRRDDDLLDLURRRUUULLDDUUUULLLDDDDRRDRUUURRDDDLRUUUURRUULLDLLLLRRRRDDLLUDDDLDDRUUUURRDLULDDLDDRURRURULULLDDLDRUUURRUULLDDDDLLLUUULUURDRRURDDDDULDDLLUUULURRRURDRRDDDLLURRUULLDDLDURRDL",
         "ans for big 4",
